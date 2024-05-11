@@ -34,9 +34,12 @@ void handle_input_posts(char *input)
 			repost_id = atoi(auxiliar);
 		add_repost(name, post_id, repost_id);
 	}
-	else if (!strcmp(cmd, "common-repost"))
-		(void)cmd;
-		// TODO: Add function
+	else if (!strcmp(cmd, "common-repost")) {
+		unsigned int post = atoi(strtok(NULL, "\n "));
+		unsigned int first_repost = atoi(strtok(NULL, "\n "));
+		unsigned int second_repost = atoi(strtok(NULL, "\n "));
+		printf("%u\n", find_common_repost(post, first_repost, second_repost));
+	}
 	else if (!strcmp(cmd, "like"))
 		(void)cmd;
 		// TODO: Add function
@@ -86,6 +89,28 @@ post_t *create_post(unsigned int id, char *title, unsigned int user_id, unsigned
 		
 	post->id = id;
 	return post;
+}
+
+unsigned int find_common_repost(unsigned int post_id, unsigned int first_repost, unsigned int second_repost) {
+	ll_node_t *post_node = posts->head;
+	post_t *root_post = NULL;
+	while (post_node) {
+		post_t *post = get_post_from_node(post_node);
+		if (post->id == post_id) {
+			root_post = post;
+			break;
+		}
+		post_node = post_node->next;
+	}
+
+	unsigned int ancestor = lg_lowest_common_ancestor(root_post->events, first_repost, second_repost);
+	if (ancestor == 0) {
+		printf("No common reposts for %u and %u\n", first_repost, second_repost);
+	} else {
+		printf("The first common repost of %u and %u is %u\n", first_repost, second_repost,(*((post_t **)root_post->events->data[ancestor]))->id);
+	}
+
+	return ancestor;
 }
 
 void add_repost(char *name, unsigned int post_id, unsigned int repost_id) {

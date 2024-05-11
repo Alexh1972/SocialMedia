@@ -45,4 +45,6 @@ void lg_free(list_graph_t* graph);
 
 void lg_print(list_graph_t *graph);
 
+unsigned int lg_lowest_common_ancestor(list_graph_t *graph, int first, int second);
+
 #endif

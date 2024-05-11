@@ -29,6 +29,8 @@ void free_posts();
 
 void lg_print_post(list_graph_t *graph);
 
+unsigned int find_common_repost(unsigned int post, unsigned int first_repost, unsigned int second_repost);
+
 void add_repost(char *name, unsigned int post_id, unsigned int repost_id);
 
 post_t *get_post_from_node(ll_node_t *node);

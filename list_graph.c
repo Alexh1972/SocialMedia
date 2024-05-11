@@ -1,5 +1,6 @@
 #include "list_graph.h"
 #include <stdlib.h>
+#include <math.h>
 
 static int is_node_in_graph(int n, int nodes)
 {
@@ -115,4 +116,53 @@ void lg_free(list_graph_t *graph)
     free(graph->data);
     free(graph);
 }
+
+static void __lq_lowest_common_ancestor_search(list_graph_t *graph, int *level, int *nodes, int *count, int current_node, int current_level) {
+    linked_list_t *list = lg_get_neighbours(graph, current_node);
+    ll_node_t *node = list->head;
+    (*count)++;
+    level[*count] = current_level;
+    nodes[*count] = current_node;
+
+    while (node) {
+        __lq_lowest_common_ancestor_search(graph, level, nodes, count, *((int *)node->data), current_level + 1);
+        (*count)++;
+        level[*count] = current_level;
+        nodes[*count] = current_node;
+
+        node = node->next;
+    }
+}
+
+unsigned int lg_lowest_common_ancestor(list_graph_t *graph, int first, int second) {
+    unsigned int length = ceil(graph->nodes * log(graph->nodes));
+    int level[length];
+    int nodes[length];
+    int count = -1;
+    __lq_lowest_common_ancestor_search(graph, level, nodes, &count, 0, 0);
+    int first_index = 0, second_index = 0;
+    for (int i = 0; i < count; i++) {
+        if (nodes[i] == first || nodes[i] == second) {
+            if (first_index == 0) {
+                first_index = i;
+            } else {
+                second_index = i;
+            }
+        }
+
+        if (first_index && second_index)
+            break;
+    }
+
+    int minimum = -1, associated_node = 0;
+    for (int i = first_index; i <= second_index; i++) {
+        if (minimum == -1 || minimum > level[i]) {
+            minimum = level[i];
+            associated_node = nodes[i];
+        }
+    }
+
+    return associated_node;
+}
+
 

@@ -72,4 +72,6 @@ int dll_is_head(doubly_linked_list_t *list, dll_node_t *node);
 
 dll_node_t *dll_get_tail(doubly_linked_list_t *list);
 
+dll_node_t *dll_remove_node(doubly_linked_list_t *list, dll_node_t *node);
+
 #endif

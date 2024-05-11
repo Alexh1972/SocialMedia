@@ -289,3 +289,20 @@ dll_node_t *dll_get_next_node(doubly_linked_list_t *list, dll_node_t *node)
 	else
 		return NULL;
 }
+
+dll_node_t *dll_remove_node(doubly_linked_list_t *list, dll_node_t *node) {
+	if (list == NULL || list->head == NULL)
+		return NULL;
+
+	dll_node_t *rm_node = NULL;
+	if (node == list->head) {
+		rm_node = dll_remove_nth_node(list, 0);
+	} else {
+		dll_node_t *old_head = list->head;
+		list->head = node;
+		rm_node = dll_remove_node(list, 0);
+		list->head = old_head;
+	}
+
+	return rm_node;
+}

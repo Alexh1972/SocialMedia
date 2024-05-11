@@ -141,12 +141,18 @@ unsigned int lg_lowest_common_ancestor(list_graph_t *graph, int first, int secon
     int count = -1;
     __lq_lowest_common_ancestor_search(graph, level, nodes, &count, 0, 0);
     int first_index = 0, second_index = 0;
+    int first_found = 0, second_found = 0;
     for (int i = 0; i < count; i++) {
         if (nodes[i] == first || nodes[i] == second) {
             if (first_index == 0) {
                 first_index = i;
+                if (nodes[i] == first)
+                    first_found = 1;
+                else
+                    second_found = 1;
             } else {
-                second_index = i;
+                if ((nodes[i] == second && first_found == 1) || (nodes[i] == first && second_found == 1))
+                    second_index = i;
             }
         }
 

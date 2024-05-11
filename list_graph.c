@@ -7,31 +7,38 @@ static int is_node_in_graph(int n, int nodes)
 }
 
 list_graph_t *
-lg_create(int nodes)
+lg_create()
 {
-    int i;
-
     list_graph_t *g = malloc(sizeof(*g));
     DIE(!g, "malloc graph failed");
 
-    g->neighbors = malloc(nodes * sizeof(*g->neighbors));
-    DIE(!g->neighbors, "malloc neighbours failed");
+    // g->neighbors = malloc(nodes * sizeof(*g->neighbors));
+    // DIE(!g->neighbors, "malloc neighbours failed");
 
-    for (i = 0; i != nodes; ++i)
-        g->neighbors[i] = ll_create(sizeof(int));
-
-    g->nodes = nodes;
+    // for (i = 0; i != nodes; ++i)
+    //     g->neighbors[i] = ll_create(sizeof(int));
+	g->neighbors = NULL;
+    g->nodes = 0;
 
     return g;
 }
 
-list_graph_t *lg_add_node(list_graph_t *graph) {
-	if (!graph || !graph->neighbors)
+void lg_add_node(list_graph_t *graph, void *data, unsigned int data_size) {
+	if (!graph)
 		return;
 	
 	graph->nodes++;
-	graph->neighbors = realloc(graph->neighbors, graph->nodes * sizeof(*graph->neighbors));
+	if (graph->nodes > 1) {
+		graph->neighbors = realloc(graph->neighbors, graph->nodes * sizeof(*graph->neighbors));
+		graph->data = realloc(graph->data, graph->nodes * sizeof(void *));
+	}
+	else {
+		graph->neighbors = malloc(graph->nodes * sizeof(*graph->neighbors));
+		graph->data = malloc(graph->nodes * sizeof(void *));
+	}
 	graph->neighbors[graph->nodes - 1] = ll_create(sizeof(int));
+    graph->data[graph->nodes - 1] = malloc(data_size);
+	memcpy(graph->data[graph->nodes - 1], data, data_size);
 } 
 
 void lg_add_edge(list_graph_t *graph, int src, int dest)
@@ -75,8 +82,7 @@ int lg_has_edge(list_graph_t *graph, int src, int dest)
 linked_list_t *
 lg_get_neighbours(list_graph_t *graph, int node)
 {
-    if (
-        !graph || !graph->neighbors || !is_node_in_graph(node, graph->nodes))
+    if (!graph || !graph->neighbors || !is_node_in_graph(node, graph->nodes))
         return NULL;
 
     return graph->neighbors[node];
@@ -100,9 +106,13 @@ void lg_free(list_graph_t *graph)
 {
     int i;
 
-    for (i = 0; i != graph->nodes; ++i)
+    for (i = 0; i != graph->nodes; ++i) {
+        free(graph->data[i]);
         ll_free(graph->neighbors + i);
+    }
 
     free(graph->neighbors);
+    free(graph->data);
     free(graph);
 }
+

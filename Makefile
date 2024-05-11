@@ -9,7 +9,7 @@ build: friends posts feed
 
 # Any other object file that is needed for the other files
 # add it here, separated by space
-UTILS = users.o
+UTILS = users.o linked_list.o queue.o hash_table.o graph.o list_graph.o
 
 friends: $(UTILS) friends.o social_media_friends.o
 	$(CC) $(CFLAGS) -o $@ $^
@@ -17,7 +17,7 @@ friends: $(UTILS) friends.o social_media_friends.o
 posts: $(UTILS) posts.o social_media_posts.o
 	$(CC) $(CFLAGS) -o $@ $^
 	
-feed: $(UTILS) posts.o friends.o feed.o social_media_feed.o linked_list.o queue.o
+feed: $(UTILS) posts.o friends.o feed.o social_media_feed.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 social_media_friends.o:

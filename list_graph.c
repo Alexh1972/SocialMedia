@@ -1,4 +1,10 @@
 #include "list_graph.h"
+#include <stdlib.h>
+
+static int is_node_in_graph(int n, int nodes)
+{
+    return n >= 0 && n < nodes;
+}
 
 list_graph_t *
 lg_create(int nodes)
@@ -19,10 +25,18 @@ lg_create(int nodes)
     return g;
 }
 
+list_graph_t *lg_add_node(list_graph_t *graph) {
+	if (!graph || !graph->neighbors)
+		return;
+	
+	graph->nodes++;
+	graph->neighbors = realloc(graph->neighbors, graph->nodes * sizeof(*graph->neighbors));
+	graph->neighbors[graph->nodes - 1] = ll_create(sizeof(int));
+} 
+
 void lg_add_edge(list_graph_t *graph, int src, int dest)
 {
-    if (
-        !graph || !graph->neighbors || !is_node_in_graph(src, graph->nodes) || !is_node_in_graph(dest, graph->nodes))
+    if (!graph || !graph->neighbors || !is_node_in_graph(src, graph->nodes) || !is_node_in_graph(dest, graph->nodes))
         return;
 
     ll_add_nth_node(graph->neighbors[src], graph->neighbors[src]->size, &dest);

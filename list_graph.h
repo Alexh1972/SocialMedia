@@ -2,14 +2,33 @@
 #define LIST_GRAPH_H
 
 #include "linked_list.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
-struct list_graph_t
+#define DIE(assertion, call_description)            \
+    do                                              \
+    {                                               \
+        if (assertion)                              \
+        {                                           \
+            fprintf(stderr, "(%s, %d): ", __FILE__, \
+                    __LINE__);                      \
+            perror(call_description);               \
+            exit(errno);                            \
+        }                                           \
+    } while (0)
+
+typedef struct list_graph_t
 {
 	linked_list_t** neighbors;
 	int nodes;
-};
+} list_graph_t;
 
 list_graph_t* lg_create(int nodes);
+
+list_graph_t *lg_add_node(list_graph_t *graph);
 
 void lg_add_edge(list_graph_t* graph, int src, int dest);
 

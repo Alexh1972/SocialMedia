@@ -17,7 +17,7 @@ friends: $(UTILS) friends.o social_media_friends.o
 posts: $(UTILS) posts.o social_media_posts.o
 	$(CC) $(CFLAGS) -o $@ $^
 	
-feed: $(UTILS) posts.o friends.o feed.o social_media_feed.o
+feed: $(UTILS) posts.o friends.o feed.o social_media_feed.o linked_list.o queue.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 social_media_friends.o:
@@ -28,6 +28,11 @@ social_media_posts.o:
 
 social_media_feed.o:
 	$(CC) $(CFLAGS) -c -D TASK_1 -D TASK_2 -D TASK_3 -o $@ social_media.c
+
+run:
+	valgrind --leak-check=full --show-leak-kinds=all ./feed
+
+run_debug: feed run clean
 
 clean:
 	rm -rf *.o friends posts feed

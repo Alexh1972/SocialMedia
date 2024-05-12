@@ -1,1 +1,14 @@
 create Mihai Titlu postare
+repost Maria 0
+repost Dan 0
+repost Maria 0 1
+repost Dan 0 1
+repost Dan 0 2
+repost Alex 0 4
+common-repost 0 2 5
+like Alex 0 4
+get-likes 0 4
+ratio 0
+delete 0 1
+delete 0 2
+delete 0 0

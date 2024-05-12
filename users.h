@@ -20,3 +20,5 @@ uint16_t get_user_id(char *name);
  * @return the name of a user, of NULL if not found
 */
 char *get_user_name(uint16_t id);
+
+void free_users();

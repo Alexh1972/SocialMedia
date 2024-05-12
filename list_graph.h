@@ -24,11 +24,12 @@ typedef struct list_graph_t
 {
 	linked_list_t** neighbors;
 	int nodes;
+	void **data;
 } list_graph_t;
 
-list_graph_t* lg_create(int nodes);
+list_graph_t* lg_create();
 
-list_graph_t *lg_add_node(list_graph_t *graph);
+void lg_add_node(list_graph_t *graph, void *data, unsigned int data_size);
 
 void lg_add_edge(list_graph_t* graph, int src, int dest);
 
@@ -41,5 +42,9 @@ linked_list_t* lg_get_neighbours(list_graph_t* graph, int node);
 void lg_remove_edge(list_graph_t* graph, int src, int dest);
 
 void lg_free(list_graph_t* graph);
+
+void lg_print(list_graph_t *graph);
+
+unsigned int lg_lowest_common_ancestor(list_graph_t *graph, int first, int second);
 
 #endif

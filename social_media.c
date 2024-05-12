@@ -38,6 +38,7 @@ int main(void)
 	init_tasks();
 
 	char *input = (char *)malloc(MAX_COMMAND_LEN);
+	char *aux = input;
 	while (1) {
 		input = fgets(input, MAX_COMMAND_LEN, stdin);
 
@@ -57,6 +58,10 @@ int main(void)
 		handle_input_feed(input);
 		#endif
 	}
+
+	free_posts();
+	free_users();
+	free(aux);
 
 	return 0;
 }

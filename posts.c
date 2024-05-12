@@ -70,9 +70,15 @@ void handle_input_posts(char *input)
 			printf("The original post is the highest rated\n");
 		}
 	}
-	else if (!strcmp(cmd, "delete"))
-		(void)cmd;
-		// TODO: Add function
+	else if (!strcmp(cmd, "delete")) {
+		unsigned int post_id = atoi(strtok(NULL, "\n "));
+		unsigned int repost_id = 0;
+		char *auxiliar = strtok(NULL, "\n ");
+		if (auxiliar)
+			repost_id = atoi(auxiliar);
+		delete_repost(post_id, repost_id);
+		printf("Deleted ???? %d %d\n", post_id, repost_id);
+	}
 	else if (!strcmp(cmd, "get-likes")) {
 		unsigned int post_id = atoi(strtok(NULL, "\n "));
 		unsigned int repost_id = 0;
@@ -269,6 +275,32 @@ void free_posts() {
 	ll_free(&posts);
 }
 
+void remove_post(unsigned int post_id) {
+	unsigned int i = 0;
+	ll_node_t *node = posts->head;
+	while (node) {
+		ll_node_t *next = node->next;
+		if (((post_t *)node->data)->id == post_id) {
+			node = ll_remove_nth_node(posts, i);
+			post_t *post = node->data;
+			free(post->title);
+			dll_free(&post->likes);
+			for (unsigned int i = 1; i < get_number_reposts(post); i++) {
+				post_t *graph_post = (*((post_t **)post->events->data[i]));
+				dll_free(&graph_post->likes);
+				free(graph_post);
+			}
+
+			lg_free(post->events);
+			free(node->data);
+			free(node);
+			break;
+		}
+		node = next;
+		i++;
+	}
+}
+
 void lg_print_post(list_graph_t *graph) {
 	printf("\n--------GRAPH - index - 0--------\n");
 	for (int i = 0; i < graph->nodes; i++) {
@@ -398,3 +430,94 @@ void print_reposts(unsigned int post_id) {
 	__print_reposts(post, index);
 }
 
+void delete_repost(unsigned int post_id, unsigned int repost_id) {
+	if (repost_id == 0) {
+		remove_post(post_id);
+	} else {
+		unsigned int current_node = 0;
+		post_t *post = get_post_by_id(post_id);
+		queue_t *queue = init_queue(sizeof(int));
+		unsigned int repost_node = get_repost_index(post, repost_id);
+		push_queue(queue, &current_node);
+		unsigned int repost_parent_found = 0;
+		while (!is_empty_queue(queue) && !repost_parent_found) {
+			current_node = *((int *)peek_queue(queue));
+			ll_node_t *rm_node = pop_queue(queue);
+			free(rm_node->data);
+			free(rm_node);
+			linked_list_t *list = lg_get_neighbours(post->events, current_node);
+			ll_node_t *node = list->head;
+			while (node && !repost_parent_found) {
+				unsigned int next = *((int *)node->data);
+				if (next == repost_node) {
+					repost_parent_found = 1;
+					lg_remove_edge(post->events, current_node, next);
+					break;
+				} else {
+					push_queue(queue, &next);
+				}
+				node = node->next;
+			}
+		}
+
+		destroy_queue(&queue);
+		delete_reposts_with_parent_repost(post, repost_node);
+	}
+}
+
+void delete_reposts_with_parent_repost(post_t *original_post, unsigned int repost_index) {
+	unsigned int current_node = repost_index;
+	queue_t *queue = init_queue(sizeof(int));
+	push_queue(queue, &current_node);
+	unsigned int removed_nodes[get_number_reposts(original_post)];
+	unsigned int removed_counter = 0;
+	while (!is_empty_queue(queue)) {
+		current_node = *((int *)peek_queue(queue));
+		ll_node_t *rm_node = pop_queue(queue);
+		free(rm_node->data);
+		free(rm_node);
+		linked_list_t *list = lg_get_neighbours(original_post->events, current_node);
+		ll_node_t *node = list->head;
+		while (node) {
+			ll_node_t *next_node = node->next;
+			unsigned int next = *((int *)node->data);
+			push_queue(queue, &next);
+			lg_remove_edge(original_post->events, current_node, next);
+			node = next_node;
+		}
+
+		post_t *rm_repost = (*((post_t **)original_post->events->data[current_node]));
+		free(rm_repost->title);
+		dll_free(&rm_repost->likes);
+		free(rm_repost);
+        ll_free(&list);
+		free(original_post->events->data[current_node]);
+		original_post->events->data[current_node] = NULL;
+		removed_nodes[removed_counter++] = current_node;
+	}
+
+	while (removed_counter) {
+		unsigned int removed_node = removed_nodes[removed_counter - 1];
+		for (unsigned int i = removed_node; i < get_number_reposts(original_post) - 1; i++) {
+			original_post->events->data[i] = original_post->events->data[i + 1];
+			original_post->events->neighbors[i] = original_post->events->neighbors[i + 1];
+		}
+		original_post->events->nodes--;
+		original_post->events->data = realloc(original_post->events->data, sizeof(void *) * original_post->events->nodes);
+		for (unsigned int i = 0; i < get_number_reposts(original_post) - 1; i++) {
+			if (original_post->events->data[i] != NULL) {
+				linked_list_t *list = lg_get_neighbours(original_post->events, i);
+				ll_node_t *node = list->head;
+				while (node) {
+					unsigned int *next = node->data;
+					if (*next > removed_node)
+						(*next)--;
+					node = node->next;
+				}
+			}
+		}
+		removed_counter--;
+	}
+
+	destroy_queue(&queue);
+}

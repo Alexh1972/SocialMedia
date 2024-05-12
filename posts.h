@@ -56,4 +56,10 @@ post_t *get_repost_by_id(unsigned int repost_id, unsigned int *index);
 
 void print_reposts(unsigned int post_id);
 
+void delete_repost(unsigned int post_id, unsigned int repost_id);
+
+void remove_post(unsigned int post_id);
+
+void delete_reposts_with_parent_repost(post_t *original_post, unsigned int repost_index);
+
 #endif // POSTS_H

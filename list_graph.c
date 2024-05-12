@@ -12,12 +12,6 @@ lg_create()
 {
     list_graph_t *g = malloc(sizeof(*g));
     DIE(!g, "malloc graph failed");
-
-    // g->neighbors = malloc(nodes * sizeof(*g->neighbors));
-    // DIE(!g->neighbors, "malloc neighbours failed");
-
-    // for (i = 0; i != nodes; ++i)
-    //     g->neighbors[i] = ll_create(sizeof(int));
 	g->neighbors = NULL;
     g->nodes = 0;
 
@@ -100,7 +94,9 @@ void lg_remove_edge(list_graph_t *graph, int src, int dest)
     if (!find_node(graph->neighbors[src], dest, &pos))
         return;
 
-    ll_remove_nth_node(graph->neighbors[src], pos);
+    ll_node_t *rm_node = ll_remove_nth_node(graph->neighbors[src], pos);
+    free(rm_node->data);
+    free(rm_node);
 }
 
 void lg_free(list_graph_t *graph)

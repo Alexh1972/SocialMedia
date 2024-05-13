@@ -33,8 +33,6 @@ void handle_input_friends(char *input)
 		// TODO: Add function
 		char *src_user = strtok(NULL, "\n ");
 		char *dest_user = strtok(NULL, "\n");
-		// printf("%s\n", src_user);
-		// printf("%s\n", dest_user);
 		add_friend_requst(src_user, dest_user);
 
 	} else if (!strcmp(cmd, "remove")) {

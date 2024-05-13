@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -Werror -g -lm
+CFLAGS=-Wall -Wextra -Werror -g -lm # -fsanitize=address,undefined
 
 .PHONY: build clean
 
@@ -9,7 +9,7 @@ build: friends posts feed
 
 # Any other object file that is needed for the other files
 # add it here, separated by space
-UTILS = users.o linked_list.o queue.o list_graph.o
+UTILS = users.o linked_list.o queue.o list_graph.o hashtable.o
 
 friends: $(UTILS) friends.o social_media_friends.o
 	$(CC) -o $@ $^ $(CFLAGS)
@@ -31,6 +31,11 @@ social_media_feed.o:
 
 run:
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./posts < checker/input/00-posts.in
+
+run_debug_friends: friends run clean
+
+run_friends_valgrind:
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./friends
 
 run_debug: posts run clean
 

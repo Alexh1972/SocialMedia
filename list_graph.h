@@ -33,6 +33,8 @@ void lg_add_node(list_graph_t *graph, void *data, unsigned int data_size);
 
 void lg_add_edge(list_graph_t* graph, int src, int dest);
 
+void lg_add_edge_unoriented(list_graph_t* graph, int src, int dest);
+
 ll_node_t *find_node(linked_list_t *ll, int node, unsigned int *pos);
 
 int lg_has_edge(list_graph_t* graph, int src, int dest);
@@ -40,6 +42,8 @@ int lg_has_edge(list_graph_t* graph, int src, int dest);
 linked_list_t* lg_get_neighbours(list_graph_t* graph, int node);
 
 void lg_remove_edge(list_graph_t* graph, int src, int dest);
+
+void lg_remove_edge_unoriented(list_graph_t *graph, int src, int dest);
 
 void lg_free(list_graph_t* graph);
 

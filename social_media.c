@@ -59,7 +59,13 @@ int main(void)
 		#endif
 	}
 
+	#ifdef TASK_1
+	free_friends();
+	#endif
+
+	#ifdef TASK_2
 	free_posts();
+	#endif
 	free_users();
 	free(aux);
 

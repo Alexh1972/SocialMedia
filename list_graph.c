@@ -44,6 +44,15 @@ void lg_add_edge(list_graph_t *graph, int src, int dest)
     ll_add_nth_node(graph->neighbors[src], graph->neighbors[src]->size, &dest);
 }
 
+void lg_add_edge_unoriented(list_graph_t *graph, int src, int dest)
+{
+    if (!graph || !graph->neighbors || !is_node_in_graph(src, graph->nodes) || !is_node_in_graph(dest, graph->nodes))
+        return;
+
+    ll_add_nth_node(graph->neighbors[src], graph->neighbors[src]->size, &dest);
+    ll_add_nth_node(graph->neighbors[dest], graph->neighbors[dest]->size, &src);
+}
+
 ll_node_t *find_node(linked_list_t *ll, int node, unsigned int *pos)
 {
     ll_node_t *crt = ll->head;
@@ -97,6 +106,29 @@ void lg_remove_edge(list_graph_t *graph, int src, int dest)
     ll_node_t *rm_node = ll_remove_nth_node(graph->neighbors[src], pos);
     free(rm_node->data);
     free(rm_node);
+}
+
+void lg_remove_edge_unoriented(list_graph_t *graph, int src, int dest)
+{
+    unsigned int pos_src;
+    unsigned int pos_dest;
+
+    if (
+        !graph || !graph->neighbors || !is_node_in_graph(src, graph->nodes) || !is_node_in_graph(dest, graph->nodes))
+        return;
+
+    if (!find_node(graph->neighbors[src], dest, &pos_src))
+        return;
+    
+    if (!find_node(graph->neighbors[dest], src, &pos_dest))
+        return;
+
+    ll_node_t *rm_node_src = ll_remove_nth_node(graph->neighbors[src], pos_src);
+    ll_node_t *rm_node_dest = ll_remove_nth_node(graph->neighbors[dest], pos_dest);
+    free(rm_node_src->data);
+    free(rm_node_src);
+    free(rm_node_dest->data);
+    free(rm_node_dest);
 }
 
 void lg_free(list_graph_t *graph)

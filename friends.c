@@ -19,16 +19,21 @@ void handle_input_friends(char *input)
 	char *commands = strdup(input);
 	char *cmd = strtok(commands, "\n ");
 	
-	if (!friend_network)
-		friend_network = lg_create();
+	// if (!friend_network)
+	// 	friend_network = lg_create();
 	
-	if (!user_database)
-		user_database = ht_create(520, hash_function_string, compare_function_ints, key_val_free_function);
+	// if (!user_database)
+	// 	user_database = ht_create(MAX_PEOPLE, hash_function_string, compare_function_ints, key_val_free_function);
 
 	if (!cmd)
 		return;
 
 	if (!strcmp(cmd, "add")) {
+		if (!friend_network)
+		friend_network = lg_create();
+	
+		if (!user_database)
+			user_database = ht_create(MAX_PEOPLE, hash_function_string, compare_function_ints, key_val_free_function);
 		(void)cmd;
 		// TODO: Add function
 		char *src_user = strtok(NULL, "\n ");
@@ -140,6 +145,57 @@ void print_nb_friends(char *user)
 	printf("%s has %d friends\n", user, friend_network->neighbors[user_id]->size);
 }
 
+linked_list_t *get_user_friends(char *user) {
+	int *user_id = (int *)ht_get(user_database, user);
+	if (user_id)
+		return lg_get_neighbours(friend_network, *user_id);
+
+	return NULL;
+}
+
+char *get_username_by_index(unsigned int index) {
+	return friend_network->data[index];
+}
+
+unsigned int is_user_in_friends_list(unsigned int user_id, unsigned int searched_user_id) {
+	linked_list_t *friends_list = get_user_friends(get_user_name(user_id));
+	if (friends_list) {
+
+		ll_node_t *friends_node = friends_list->head;
+		while (friends_node) {	
+			unsigned int friends_index = *((int *)friends_node->data);
+			unsigned int friends_id = get_user_id(get_username_by_index(friends_index));
+			if (searched_user_id == friends_id)
+				return 1;
+			friends_node = friends_node->next;
+		}
+	}
+
+	return 0;
+}
+
+unsigned int get_user_network_index(char *user) {
+	return *(int *)ht_get(user_database, user);
+}
+
+static int compare_user_creation_order(const void *a, const void *b) {
+	return *((unsigned int *)a) - *((unsigned int *)b);
+}
+
+unsigned int *get_friends_clique(char *name, unsigned int *clique_size) {
+	unsigned int size = 0;
+	unsigned int *clique = lg_maximal_clique_containing_node(friend_network, get_user_network_index(name), &size);
+	qsort(clique, size, sizeof(unsigned int), compare_user_creation_order);
+	for (unsigned int i = 0; i < size; i++) {
+		clique[i] = get_user_id(get_username_by_index(clique[i]));
+	}
+
+	if (clique_size)
+		*clique_size = size;
+
+	return clique;
+}
+
 void print_popularity_king(char *user)
 {
 	update_database(user, NULL);
@@ -147,7 +203,7 @@ void print_popularity_king(char *user)
 	int user_id_graph = *(int *)ht_get(user_database, user);
 	unsigned int max_friends = friend_network->neighbors[user_id_graph]->size;
 	int min_id = network_user_cnt;
-	char max_friend[30] = "";
+	char max_friend[MAX_USERNAME_LENGTH] = "";
 	strcpy(max_friend, user);
 
 	ll_node_t *curr = friend_network->neighbors[user_id_graph]->head;
@@ -184,7 +240,7 @@ void print_popularity_king(char *user)
 void print_common_friends(char *src_user, char *dest_user)
 {
 	update_database(src_user, dest_user);
-	char common_friends[520][30];
+	char common_friends[MAX_PEOPLE][MAX_USERNAME_LENGTH];
 	int cnt = 0;
 	int src_user_id = *(int *)ht_get(user_database, src_user);
 	int dest_user_id = *(int *)ht_get(user_database, dest_user);
@@ -212,7 +268,7 @@ void print_common_friends(char *src_user, char *dest_user)
 			int shadow_id_j = get_user_id(common_friends[j]);
 
 			if (shadow_id_i > shadow_id_j) {
-				char tmp[30];
+				char tmp[MAX_USERNAME_LENGTH];
 				strcpy(tmp, common_friends[i]);
 				strcpy(common_friends[i], common_friends[j]);
 				strcpy(common_friends[j], tmp);
@@ -237,7 +293,7 @@ void print_suggestions(char *user)
 		return;
 	}
 
-	char suggested_friends[520][30];
+	char suggested_friends[MAX_PEOPLE][MAX_USERNAME_LENGTH];
 	int cnt = 0;
 
 	ll_node_t *curr  = friend_network->neighbors[user_id]->head;
@@ -278,7 +334,7 @@ void print_suggestions(char *user)
 			int shadow_id_j = get_user_id(suggested_friends[j]);
 
 			if (shadow_id_i > shadow_id_j) {
-				char tmp[30];
+				char tmp[MAX_USERNAME_LENGTH];
 				strcpy(tmp, suggested_friends[i]);
 				strcpy(suggested_friends[i], suggested_friends[j]);
 				strcpy(suggested_friends[j], tmp);

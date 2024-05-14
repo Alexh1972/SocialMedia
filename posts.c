@@ -95,13 +95,94 @@ void handle_input_posts(char *input)
 		unsigned int post_id = atoi(strtok(NULL, "\n "));
 		print_reposts(post_id);
 	}
-	print_posts();
+	// print_posts();
 	free(commands);
+}
+
+linked_list_t *get_all_posts() {
+	return posts;
 }
 
 char *get_post_title_by_id(unsigned int post_id) {
 	post_t *post = get_post_by_id(post_id);
 	return post->title;
+}
+
+profile_post_t *create_profile_post(post_t *post, char *original_post_title) {
+	profile_post_t *profile_post = malloc(sizeof(profile_post_t));
+	profile_post->post = post;
+	profile_post->original_post_title = original_post_title;
+	return profile_post;
+}
+
+void free_profile_post(profile_post_t *profile_post) {
+	free(profile_post);
+}
+
+static int compare_user_profile_posts_by_creation_order(const void *a, const void *b)
+{
+   const profile_post_t *first = a;
+   const profile_post_t *second = b;
+
+   return first->post->id - second->post->id;
+}
+
+profile_post_t **get_user_profile_posts(unsigned int user_id, unsigned int *no_posts) {
+	ll_node_t *post_node = posts->head;
+	profile_post_t **user_profile_posts = NULL;
+	unsigned int number_posts = 0;
+	while (post_node) {
+		post_t *post = get_post_from_node(post_node);
+		if (post->user_id == user_id) {
+			if (!number_posts) {
+				number_posts++;
+				user_profile_posts = malloc(number_posts * sizeof(profile_post_t *));
+				user_profile_posts[number_posts - 1] = create_profile_post(post, NULL);
+			} else {
+				number_posts++;
+				user_profile_posts = realloc(user_profile_posts, number_posts * sizeof(profile_post_t *));
+				user_profile_posts[number_posts - 1] = create_profile_post(post, NULL);
+			}
+		}
+
+		unsigned int node = 0;
+		queue_t *queue = init_queue(sizeof(int));
+		push_queue(queue, &node);
+		while (!is_empty_queue(queue)) {
+			int node = *((int *)peek_queue(queue));
+			ll_node_t *rm_node = pop_queue(queue);
+			free(rm_node->data);
+			free(rm_node);
+			linked_list_t *list = lg_get_neighbours(post->events, node);
+			ll_node_t *repost_node = list->head;
+			while (repost_node) {
+				int next = *((int *)repost_node->data);
+				post_t *repost = get_repost_by_index(post, next);
+				if (repost->user_id == user_id) {
+					if (!number_posts) {
+						number_posts++;
+						user_profile_posts = malloc(number_posts * sizeof(profile_post_t *));
+						user_profile_posts[number_posts - 1] = create_profile_post(post, post->title);
+					} else {
+						number_posts++;
+						user_profile_posts = realloc(user_profile_posts, number_posts * sizeof(profile_post_t *));
+						user_profile_posts[number_posts - 1] = create_profile_post(post, post->title);
+					}
+				}
+				push_queue(queue, &next);
+				repost_node = repost_node->next;
+			}
+		}
+
+		destroy_queue(&queue);
+		post_node = post_node->next;
+	}
+
+	qsort(user_profile_posts, number_posts, sizeof(profile_post_t *), compare_user_profile_posts_by_creation_order);
+	if (no_posts)
+		*no_posts = number_posts;
+
+	return user_profile_posts;
 }
 
 unsigned int add_post(char *username, char *title) {
@@ -254,25 +335,27 @@ void print_post(post_t *post) {
 }
 
 void free_posts() {
-	ll_node_t *node = posts->head;
-	while (node) {
-		ll_node_t *next = node->next;
-		node = ll_remove_nth_node(posts, 0);
-		post_t *post = node->data;
-		free(post->title);
-		dll_free(&post->likes);
-		for (unsigned int i = 1; i < get_number_reposts(post); i++) {
-			post_t *graph_post = (*((post_t **)post->events->data[i]));
-			dll_free(&graph_post->likes);
-			free(graph_post);
-		}
+	if (posts) {
+		ll_node_t *node = posts->head;
+		while (node) {
+			ll_node_t *next = node->next;
+			node = ll_remove_nth_node(posts, 0);
+			post_t *post = node->data;
+			free(post->title);
+			dll_free(&post->likes);
+			for (unsigned int i = 1; i < get_number_reposts(post); i++) {
+				post_t *graph_post = (*((post_t **)post->events->data[i]));
+				dll_free(&graph_post->likes);
+				free(graph_post);
+			}
 
-		lg_free(post->events);
-		free(node->data);
-		free(node);
-		node = next;
+			lg_free(post->events);
+			free(node->data);
+			free(node);
+			node = next;
+		}
+		ll_free(&posts);
 	}
-	ll_free(&posts);
 }
 
 void remove_post(unsigned int post_id) {

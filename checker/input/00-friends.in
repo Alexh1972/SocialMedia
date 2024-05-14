@@ -1,2 +1,14 @@
-add Emil Adrian
-distance Emil Adrian
+create Andrei "Prima mea postare"
+create Mihai "Al doilea"
+create Mihnea "Vand Golf 4"
+create Alex "Buna TPU, merita sa dau la Poli?"
+create Ana "Ati auzit ultima melodie a lui Kanye?"
+create Luca "Nu-mi vine sa cred cine a castigat Grand Prix-ul de la Miami"
+repost Mihai 5
+repost Alex 5 
+repost Ana 5
+repost Luca 5
+add Andrei Alex
+add Mihai Andrei
+feed Andrei 5
+friends-repost Andrei 5 

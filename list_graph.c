@@ -133,6 +133,8 @@ void lg_remove_edge_unoriented(list_graph_t *graph, int src, int dest)
 
 void lg_free(list_graph_t *graph)
 {
+    if (graph == NULL)
+        return;
     int i;
 
     for (i = 0; i != graph->nodes; ++i) {
@@ -197,6 +199,66 @@ unsigned int lg_lowest_common_ancestor(list_graph_t *graph, int first, int secon
     }
 
     return associated_node;
+}
+
+static void free_info(void *data) {
+    info *info = data;
+    free(info->key);
+    free(info->value);
+}
+
+static void __lg_maximal_clique(list_graph_t *graph, unsigned int **maximal_clique, unsigned int *clique_size, unsigned int *build_clique, unsigned int *build_clique_size, hashtable_t *ht) {
+    if (*build_clique_size > *clique_size) {
+        *maximal_clique = realloc(*maximal_clique, sizeof(unsigned int) * (*build_clique_size));
+        for (unsigned int i = 0; i < *build_clique_size; i++)
+            (*maximal_clique)[i] = build_clique[i];
+        *clique_size = *build_clique_size;
+    }
+
+    int i = build_clique[*build_clique_size - 1];
+    if (*build_clique_size == 1)
+        i = 0;
+    
+    for (; i < graph->nodes; i++) {
+        if (!ht_get(ht, &i)) {
+            unsigned int node_can_be_added = 1;
+            for (int j = 0; j < graph->nodes; j++) {
+                if (i != j && ht_get(ht, &j)) {
+                    if (!lg_has_edge(graph, i, j)) {
+                        node_can_be_added = 0;
+                    }
+                }
+            }
+
+            if (node_can_be_added) {
+                ht_put(ht, &i, sizeof(int), &i, sizeof(int));
+                build_clique[(*build_clique_size)++] = i;
+                __lg_maximal_clique(graph, maximal_clique, clique_size, build_clique, build_clique_size, ht);
+                (*build_clique_size)--;
+                ht_remove_entry(ht, &i);
+            }
+        }
+    }
+}
+
+unsigned int *lg_maximal_clique_containing_node(list_graph_t *graph, unsigned int node, unsigned int *size) {
+    hashtable_t *nodes_table = ht_create(graph->nodes, hash_function_int, compare_function_ints, free_info);
+
+    ht_put(nodes_table, &node, sizeof(int), &node, sizeof(int));
+
+    unsigned int *clique_nodes = malloc(sizeof(unsigned int));
+    unsigned int clique_size = 1;
+    clique_nodes[clique_size - 1] = node;
+    unsigned int build_clique[graph->nodes];
+    unsigned int build_clique_size = 1;
+    build_clique[build_clique_size - 1] = node;
+    __lg_maximal_clique(graph, &clique_nodes, &clique_size, build_clique, &build_clique_size, nodes_table);
+
+    if (size)
+        *size = clique_size;
+
+    ht_free(nodes_table);
+    return clique_nodes;
 }
 
 

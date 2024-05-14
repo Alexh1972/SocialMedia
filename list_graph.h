@@ -2,6 +2,7 @@
 #define LIST_GRAPH_H
 
 #include "linked_list.h"
+#include "hashtable.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdio.h>
@@ -50,5 +51,7 @@ void lg_free(list_graph_t* graph);
 void lg_print(list_graph_t *graph);
 
 unsigned int lg_lowest_common_ancestor(list_graph_t *graph, int first, int second);
+
+unsigned int *lg_maximal_clique_containing_node(list_graph_t *graph, unsigned int node, unsigned int *size);
 
 #endif

@@ -1,5 +1,5 @@
 #include <stdint.h>
-
+#define MAX_USERNAME_LENGTH 50
 /**
  * Initializes the user list
 */

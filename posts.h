@@ -3,13 +3,20 @@
 
 #include "list_graph.h"
 
-typedef struct post_t{
+typedef struct post_t {
      unsigned int id;
      char *title;
 	 unsigned int user_id;
 	 list_graph_t *events;
 	 doubly_linked_list_t *likes;
 } post_t;
+
+typedef struct profile_post_t
+{
+	post_t *post;
+	char *original_post_title;
+} profile_post_t;
+
 
 /**
  * Function that handles the calling of every command from task 2
@@ -61,5 +68,15 @@ void delete_repost(unsigned int post_id, unsigned int repost_id);
 void remove_post(unsigned int post_id);
 
 void delete_reposts_with_parent_repost(post_t *original_post, unsigned int repost_index);
+
+linked_list_t *get_all_posts();
+
+profile_post_t **get_user_profile_posts(unsigned int user_id, unsigned int *no_posts);
+
+profile_post_t *create_profile_post(post_t *post, char *original_post_title);
+
+void free_profile_post(profile_post_t *profile_post);
+
+post_t *get_repost_by_index(post_t *post, unsigned int index);
 
 #endif // POSTS_H

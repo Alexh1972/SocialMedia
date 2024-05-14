@@ -34,4 +34,18 @@ void print_distance(char *src, char *dest);
 
 void free_friends();
 
+linked_list_t *get_user_friends(char *user);
+
+unsigned int is_user_in_friends_list(unsigned int user_id, unsigned int searched_user);
+
+char *get_username_by_index(unsigned int index);
+
+void print_user_posts(char *name);
+
+void print_friends_name_reposts(char *name, unsigned int post_id);
+
+unsigned int get_user_network_index(char *user);
+
+unsigned int *get_friends_clique(char *name, unsigned int *size);
+
 #endif // FRIENDS_H

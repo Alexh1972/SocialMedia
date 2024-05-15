@@ -300,7 +300,7 @@ dll_node_t *dll_remove_node(doubly_linked_list_t *list, dll_node_t *node) {
 	} else {
 		dll_node_t *old_head = list->head;
 		list->head = node;
-		rm_node = dll_remove_node(list, 0);
+		rm_node = dll_remove_nth_node(list, 0);
 		list->head = old_head;
 	}
 

@@ -170,11 +170,11 @@ unsigned int lg_lowest_common_ancestor(list_graph_t *graph, int first, int secon
     int nodes[length];
     int count = -1;
     __lq_lowest_common_ancestor_search(graph, level, nodes, &count, 0, 0);
-    int first_index = 0, second_index = 0;
+    int first_index = -1, second_index = -1;
     int first_found = 0, second_found = 0;
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i <= count; i++) {
         if (nodes[i] == first || nodes[i] == second) {
-            if (first_index == 0) {
+            if (first_index == -1) {
                 first_index = i;
                 if (nodes[i] == first)
                     first_found = 1;
@@ -186,11 +186,11 @@ unsigned int lg_lowest_common_ancestor(list_graph_t *graph, int first, int secon
             }
         }
 
-        if (first_index && second_index)
+        if (first_index != -1 && second_index != -1)
             break;
     }
 
-    int minimum = -1, associated_node = 0;
+    int minimum = -1, associated_node = -1;
     for (int i = first_index; i <= second_index; i++) {
         if (minimum == -1 || minimum > level[i]) {
             minimum = level[i];
@@ -215,15 +215,17 @@ static void __lg_maximal_clique(list_graph_t *graph, unsigned int **maximal_cliq
         *clique_size = *build_clique_size;
     }
 
-    int i = build_clique[*build_clique_size - 1];
+    int i = build_clique[*build_clique_size - 1] + 1;
     if (*build_clique_size == 1)
         i = 0;
     
     for (; i < graph->nodes; i++) {
         if (!ht_get(ht, &i)) {
             unsigned int node_can_be_added = 1;
-            for (int j = 0; j < graph->nodes; j++) {
-                if (i != j && ht_get(ht, &j)) {
+
+            for (unsigned int k = 0; k < *build_clique_size; k++) {
+                int j = build_clique[k];
+                     if (ht_get(ht, &j)) {
                     if (!lg_has_edge(graph, i, j)) {
                         node_can_be_added = 0;
                     }

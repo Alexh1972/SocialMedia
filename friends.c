@@ -176,14 +176,16 @@ unsigned int get_user_network_index(char *user) {
 	return *(int *)ht_get(user_database, user);
 }
 
-static int compare_user_creation_order(const void *a, const void *b) {
-	return *((unsigned int *)a) - *((unsigned int *)b);
+static int compare_user_id_order(const void *a, const void *b) {
+	unsigned int a_id = get_user_id(get_username_by_index(*((int *)a)));
+	unsigned int b_id = get_user_id(get_username_by_index(*((int *)b)));
+	return a_id - b_id;
 }
 
 unsigned int *get_friends_clique(char *name, unsigned int *clique_size) {
 	unsigned int size = 0;
 	unsigned int *clique = lg_maximal_clique_containing_node(friend_network, get_user_network_index(name), &size);
-	qsort(clique, size, sizeof(unsigned int), compare_user_creation_order);
+	qsort(clique, size, sizeof(unsigned int), compare_user_id_order);
 	for (unsigned int i = 0; i < size; i++) {
 		clique[i] = get_user_id(get_username_by_index(clique[i]));
 	}
@@ -391,7 +393,7 @@ void print_distance(char *src, char *dest)
 	int dest_id = *(int *)ht_get(user_database, dest);
 
 	if (lg_has_edge(friend_network, src_id, dest_id)) {
-		printf("The distance between %s and %s is 1\n", src, dest);
+		printf("The distance between %s - %s is 1\n", src, dest);
 		return;
 	}
 
@@ -402,7 +404,7 @@ void print_distance(char *src, char *dest)
 		return;
 	}
 
-	printf("The distance between %s and %s is %d\n", src, dest, distance);
+	printf("The distance between %s - %s is %d\n", src, dest, distance);
 
 }
 

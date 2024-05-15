@@ -105,7 +105,6 @@ void print_friends_name_reposts(char *name, unsigned int post_id) {
 	unsigned int number_reposts = 0;
 	unsigned int user_id = get_user_id(name);
 	post_t **friends_reposts = get_friends_reposts(post, user_id, &number_reposts);
-	printf("Friends that reposted:\n");
 	for (unsigned int i = 0; i < number_reposts; i++) {
 		printf("%s\n", get_user_name(friends_reposts[i]->user_id));
 	}

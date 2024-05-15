@@ -7,7 +7,7 @@
 #include "queue.h"
 
 static linked_list_t *posts = NULL;
-static unsigned int current_post_id = 0;
+static unsigned int current_post_id = 1;
 
 void handle_input_posts(char *input)
 {
@@ -34,14 +34,15 @@ void handle_input_posts(char *input)
 		if (auxiliar)
 			repost_id = atoi(auxiliar);
 		unsigned int new_repost_id = add_repost(name, post_id, repost_id);
-		printf("Created Repost #%d for %s\n", new_repost_id, name);
+		if (new_repost_id)
+			printf("Created repost #%d for %s\n", new_repost_id, name);
 	}
 	else if (!strcmp(cmd, "common-repost")) {
 		unsigned int post = atoi(strtok(NULL, "\n "));
 		unsigned int first_repost = atoi(strtok(NULL, "\n "));
 		unsigned int second_repost = atoi(strtok(NULL, "\n "));
-		unsigned int ancestor = find_common_repost(post, first_repost, second_repost);
-		if (ancestor == 0) {
+		int ancestor = find_common_repost(post, first_repost, second_repost);
+		if (ancestor == -1) {
 			printf("No common reposts for %u and %u\n", first_repost, second_repost);
 		} else {
 			printf("The first common repost of %u and %u is %u\n", first_repost, second_repost, ancestor);
@@ -55,10 +56,18 @@ void handle_input_posts(char *input)
 		if (auxiliar)
 			repost_id = atoi(auxiliar);
 		unsigned int liked = update_post_likes(name, post_id, repost_id);
-		if (liked)
-			printf("%s liked ???\n", name);
-		else
-			printf("%s unliked ???\n", name);
+		if (liked) {
+			if (repost_id)
+				printf("User %s liked repost \"%s\"\n", name, get_post_title_by_id(post_id));
+			else
+				printf("User %s liked post \"%s\"\n", name, get_post_title_by_id(post_id));
+		}
+		else {
+			if (repost_id)
+				printf("User %s unliked repost \"%s\"\n", name, get_post_title_by_id(post_id));
+			else
+				printf("User %s unliked post \"%s\"\n", name, get_post_title_by_id(post_id));
+		}
 	}
 	else if (!strcmp(cmd, "ratio")) {
 		unsigned int post = atoi(strtok(NULL, "\n "));
@@ -77,7 +86,7 @@ void handle_input_posts(char *input)
 		if (auxiliar)
 			repost_id = atoi(auxiliar);
 		delete_repost(post_id, repost_id);
-		printf("Deleted ???? %d %d\n", post_id, repost_id);
+		printf("Deleted repost #%d of post \"%s\"\n", repost_id, get_post_title_by_id(post_id));
 	}
 	else if (!strcmp(cmd, "get-likes")) {
 		unsigned int post_id = atoi(strtok(NULL, "\n "));
@@ -89,11 +98,15 @@ void handle_input_posts(char *input)
 		if (repost_id)
 			printf("Repost #%u has %u likes\n", repost_id, likes);
 		else
-			printf("Repost \"%s\" has %u likes\n", get_post_title_by_id(post_id), likes);
+			printf("Post \"%s\" has %u likes\n", get_post_title_by_id(post_id), likes);
 	}
 	else if (!strcmp(cmd, "get-reposts")) {
 		unsigned int post_id = atoi(strtok(NULL, "\n "));
-		print_reposts(post_id);
+		unsigned int repost_id = 0;
+		char *auxiliar = strtok(NULL, "\n ");
+		if (auxiliar)
+			repost_id = atoi(auxiliar);
+		print_reposts(post_id, repost_id);
 	}
 	// print_posts();
 	free(commands);
@@ -121,10 +134,17 @@ void free_profile_post(profile_post_t *profile_post) {
 
 static int compare_user_profile_posts_by_creation_order(const void *a, const void *b)
 {
-   const profile_post_t *first = a;
-   const profile_post_t *second = b;
+   const profile_post_t *first = *((profile_post_t **)a);
+   const profile_post_t *second = *((profile_post_t **)b);
 
-   return first->post->id - second->post->id;
+   if (first->original_post_title == NULL && second->original_post_title != NULL) {
+		return 1;
+   } else if (first->original_post_title != NULL && second->original_post_title == NULL) {
+		return -1;
+   }
+
+	return first->post->id - second->post->id;
+
 }
 
 profile_post_t **get_user_profile_posts(unsigned int user_id, unsigned int *no_posts) {
@@ -178,7 +198,8 @@ profile_post_t **get_user_profile_posts(unsigned int user_id, unsigned int *no_p
 		post_node = post_node->next;
 	}
 
-	qsort(user_profile_posts, number_posts, sizeof(profile_post_t *), compare_user_profile_posts_by_creation_order);
+	if (user_profile_posts)
+		qsort(user_profile_posts, number_posts, sizeof(profile_post_t *), compare_user_profile_posts_by_creation_order);
 	if (no_posts)
 		*no_posts = number_posts;
 
@@ -217,20 +238,23 @@ post_t *create_post(unsigned int id, char *title, unsigned int user_id, unsigned
 	return post;
 }
 
-unsigned int find_common_repost(unsigned int post_id, unsigned int first_repost, unsigned int second_repost) {
+int find_common_repost(unsigned int post_id, unsigned int first_repost, unsigned int second_repost) {
 	post_t *root_post = get_post_by_id(post_id);
 
 	unsigned int ancestor = lg_lowest_common_ancestor(root_post->events, get_repost_index(root_post, first_repost), get_repost_index(root_post, second_repost));
-	if (ancestor != 0)
+	if (ancestor != (unsigned int)-1 && ancestor != 0)
 		return (*((post_t **)root_post->events->data[ancestor]))->id;
+	else if (ancestor == 0)
+		return root_post->id;
 	else
-		return 0;
+		return -1;
 }
 
 post_t *get_post_by_id(unsigned int post_id) {
 	ll_node_t *post_node = posts->head;
 	while (post_node) {
 		post_t *post = get_post_from_node(post_node);
+
 		if (post->id == post_id)
 			return post;
 
@@ -248,17 +272,21 @@ unsigned int add_repost(char *name, unsigned int post_id, unsigned int repost_id
 	post_t *repost = create_post(current_post_id, NULL, get_user_id(name), 1);
 	post_t *reposted_post = get_post_by_id(post_id);
 
-	lg_add_node(reposted_post->events, &repost, sizeof(post_t *));	
-	
-	if (repost_id == 0) {
-		lg_add_edge(reposted_post->events, 0, get_number_reposts(reposted_post) - 1);
-	} else {
-		unsigned int repost_index = get_repost_index(reposted_post, repost_id);
-		lg_add_edge(reposted_post->events, repost_index, get_number_reposts(reposted_post) - 1);
+	if (reposted_post) {
+		lg_add_node(reposted_post->events, &repost, sizeof(post_t *));	
+		
+		if (repost_id == 0) {
+			lg_add_edge(reposted_post->events, 0, get_number_reposts(reposted_post) - 1);
+		} else {
+			unsigned int repost_index = get_repost_index(reposted_post, repost_id);
+			lg_add_edge(reposted_post->events, repost_index, get_number_reposts(reposted_post) - 1);
+		}
+
+		current_post_id++;
+		return repost->id;
 	}
 
-	current_post_id++;
-	return repost->id;
+	return 0;
 }
 
 post_t *get_post_from_node(ll_node_t *node) {
@@ -410,6 +438,7 @@ unsigned int update_post_likes(char *name, unsigned int post_id, unsigned int re
 			return 1;
 		} else {
 			dll_node_t *rm_node = dll_remove_node(post->likes, liked_node);
+			free(rm_node->data);
 			free(rm_node);
 			return 0;
 		}
@@ -421,6 +450,7 @@ unsigned int update_post_likes(char *name, unsigned int post_id, unsigned int re
 			return 1;
 		} else {
 			dll_node_t *rm_node = dll_remove_node(repost->likes, liked_node);
+			free(rm_node->data);
 			free(rm_node);
 			return 0;
 		}
@@ -497,7 +527,7 @@ static void __print_reposts(post_t *post, unsigned int current_node) {
 	if (current_node != 0)
 		printf("Repost #%u by %s\n", repost->id, get_user_name(repost->user_id));
 	else
-		printf("\"%s\" - Post #%u by %s\n", repost->title, repost->id, get_user_name(repost->user_id));
+		printf("\"%s\" - Post by %s\n", repost->title, get_user_name(repost->user_id));
 
 	while (node) {
 		unsigned int next = *((int *)node->data);
@@ -506,11 +536,19 @@ static void __print_reposts(post_t *post, unsigned int current_node) {
 	}
 }
 
-void print_reposts(unsigned int post_id) {
+void print_reposts(unsigned int post_id, unsigned int repost_id) {
+	post_t *post = get_post_by_id(post_id);
 	unsigned int index = 0;
-	post_t *post = get_repost_by_id(post_id, &index);
+	if (repost_id)
+		index = get_repost_index(post, repost_id); 
 
-	__print_reposts(post, index);
+	if (post) {
+		__print_reposts(post, index);
+	}
+	else {
+		post = get_repost_by_id(post_id, &index);
+		__print_reposts(post, index);
+	}
 }
 
 void delete_repost(unsigned int post_id, unsigned int repost_id) {

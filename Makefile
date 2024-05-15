@@ -30,17 +30,19 @@ social_media_feed.o:
 	$(CC) $(CFLAGS) -c -D TASK_1 -D TASK_2 -D TASK_3 -o $@ social_media.c
 
 run_posts_valgrind:
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./posts < checker/input/00-posts.in
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./posts < checker/input/04-posts.in
 
 run_debug_friends: friends run clean
 
+run_debug_posts: posts run_posts_valgrind clean
+
 run_feed_valgrind: feed
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./feed < checker/input/00-feed.in
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./feed < checker/input/07-feed.in
 
 run_friends_valgrind:
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./friends < checker/input/00-friends.in
 
-run_debug: posts run_feed_valgrind clean
+run_debug_feed: posts run_feed_valgrind clean
 
 clean:
 	rm -rf *.o friends posts feed

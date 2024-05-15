@@ -37,7 +37,7 @@ void free_posts();
 
 void lg_print_post(list_graph_t *graph);
 
-unsigned int find_common_repost(unsigned int post, unsigned int first_repost, unsigned int second_repost);
+int find_common_repost(unsigned int post, unsigned int first_repost, unsigned int second_repost);
 
 unsigned int add_repost(char *name, unsigned int post_id, unsigned int repost_id);
 
@@ -61,7 +61,7 @@ unsigned int get_number_reposts(post_t *post);
 
 post_t *get_repost_by_id(unsigned int repost_id, unsigned int *index);
 
-void print_reposts(unsigned int post_id);
+void print_reposts(unsigned int post_id, unsigned int repost_id);
 
 void delete_repost(unsigned int post_id, unsigned int repost_id);
 

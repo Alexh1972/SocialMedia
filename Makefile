@@ -37,7 +37,7 @@ run_debug_friends: friends run clean
 run_debug_posts: posts run_posts_valgrind clean
 
 run_feed_valgrind: feed
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./feed < checker/input/07-feed.in
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./feed < checker/input/09-feed.in
 
 run_friends_valgrind:
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./friends < checker/input/00-friends.in

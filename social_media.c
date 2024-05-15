@@ -41,7 +41,6 @@ int main(void)
 	char *aux = input;
 	while (1) {
 		input = fgets(input, MAX_COMMAND_LEN, stdin);
-
 		// If fgets returns null, we reached EOF
 		if (!input)
 			break;

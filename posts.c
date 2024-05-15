@@ -138,9 +138,9 @@ static int compare_user_profile_posts_by_creation_order(const void *a, const voi
    const profile_post_t *second = *((profile_post_t **)b);
 
    if (first->original_post_title == NULL && second->original_post_title != NULL) {
-		return 1;
-   } else if (first->original_post_title != NULL && second->original_post_title == NULL) {
 		return -1;
+   } else if (first->original_post_title != NULL && second->original_post_title == NULL) {
+		return 1;
    }
 
 	return first->post->id - second->post->id;

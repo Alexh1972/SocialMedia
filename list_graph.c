@@ -209,7 +209,6 @@ static void free_info(void *data) {
 
 static void __lg_maximal_clique(list_graph_t *graph, unsigned int **maximal_clique, unsigned int *clique_size, unsigned int *build_clique, unsigned int *build_clique_size, hashtable_t *ht) {
     if (*build_clique_size > *clique_size) {
-        *maximal_clique = realloc(*maximal_clique, sizeof(unsigned int) * (*build_clique_size));
         for (unsigned int i = 0; i < *build_clique_size; i++)
             (*maximal_clique)[i] = build_clique[i];
         *clique_size = *build_clique_size;
@@ -225,10 +224,8 @@ static void __lg_maximal_clique(list_graph_t *graph, unsigned int **maximal_cliq
 
             for (unsigned int k = 0; k < *build_clique_size; k++) {
                 int j = build_clique[k];
-                     if (ht_get(ht, &j)) {
-                    if (!lg_has_edge(graph, i, j)) {
-                        node_can_be_added = 0;
-                    }
+                if (!lg_has_edge(graph, i, j)) {
+                    node_can_be_added = 0;
                 }
             }
 
@@ -248,7 +245,7 @@ unsigned int *lg_maximal_clique_containing_node(list_graph_t *graph, unsigned in
 
     ht_put(nodes_table, &node, sizeof(int), &node, sizeof(int));
 
-    unsigned int *clique_nodes = malloc(sizeof(unsigned int));
+    unsigned int *clique_nodes = malloc(sizeof(int) * graph->nodes);
     unsigned int clique_size = 1;
     clique_nodes[clique_size - 1] = node;
     unsigned int build_clique[graph->nodes];

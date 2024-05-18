@@ -49,13 +49,11 @@ char *get_user_name(uint16_t id)
 {
 	if (id >= users_number)
 		return NULL;
-
 	return users[id];
 }
 
-void free_users() {
-	for (unsigned int i = 0; i < users_number; i++) {
+void free_users(void) {
+	for (unsigned int i = 0; i < users_number; i++)
 		free(users[i]);
-	}
 	free(users);
 }

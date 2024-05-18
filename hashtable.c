@@ -1,21 +1,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include "hashtable.h"
-// #include "linked_list.h"
-
 
 int compare_function_ints(void *a, void *b)
 {
 	int int_a = *((int *)a);
 	int int_b = *((int *)b);
 
-	if (int_a == int_b) {
+	if (int_a == int_b)
 		return 0;
-	} else if (int_a < int_b) {
+	else if (int_a < int_b)
 		return -1;
-	} else {
+	else
 		return 1;
-	}
 }
 
 int compare_function_strings(void *a, void *b)
@@ -57,15 +54,13 @@ void key_val_free_function(void *data)
 	data_info->value = NULL;
 }
 
-
 hashtable_t *ht_create(unsigned int hmax,
-				unsigned int (*hash_function)(void *),
-		       int (*compare_function)(void *, void *),
-		       void (*key_val_free_function)(void *))
+					   unsigned int (*hash_function)(void *),
+					   int (*compare_function)(void *, void *),
+					   void (*key_val_free_function)(void *))
 {
-	if (!hash_function || !compare_function) {
+	if (!hash_function || !compare_function)
 		return NULL;
-	}
 
 	hashtable_t *map = malloc(sizeof(hashtable_t));
 
@@ -76,27 +71,24 @@ hashtable_t *ht_create(unsigned int hmax,
 	map->key_val_free_function = key_val_free_function;
 
 	map->buckets = malloc(map->hmax * sizeof(linked_list_t *));
-	for (unsigned int i = 0; i < map->hmax; ++i) {
+	for (unsigned int i = 0; i < map->hmax; ++i)
 		map->buckets[i] = ll_create(sizeof(info));
-	}
 
 	return map;
 }
 
 int ht_has_key(hashtable_t *ht, void *key)
 {
-	if (!ht || !key) {
+	if (!ht || !key)
 		return -1;
-	}
 
 	int hash_index = ht->hash_function(key) % ht->hmax;
 	ll_node_t *node = ht->buckets[hash_index]->head;
 
-	while (node != NULL) {
+	while (node) {
 		info *data_info = (info *)node->data;
-		if (!ht->compare_function(data_info->key, key)) {
+		if (!ht->compare_function(data_info->key, key))
 			return 1;
-		}
 		node = node->next;
 	}
 
@@ -105,18 +97,16 @@ int ht_has_key(hashtable_t *ht, void *key)
 
 void *ht_get(hashtable_t *ht, void *key)
 {
-	if (!ht || !key || ht_has_key(ht, key) != 1) {
+	if (!ht || !key || ht_has_key(ht, key) != 1)
 		return NULL;
-	}
 
 	int hash_index = ht->hash_function(key) % ht->hmax;
 	ll_node_t *node = ht->buckets[hash_index]->head;
 
-	while (node != NULL) {
+	while (node) {
 		info *data_info = (info *)node->data;
-		if (!ht->compare_function(data_info->key, key)) {
+		if (!ht->compare_function(data_info->key, key))
 			return data_info->value;
-		}
 		node = node->next;
 	}
 
@@ -124,17 +114,16 @@ void *ht_get(hashtable_t *ht, void *key)
 }
 
 void ht_put(hashtable_t *ht, void *key, unsigned int key_size, void *value,
-	    unsigned int value_size)
+			unsigned int value_size)
 {
-	if (!ht || !key || !value) {
+	if (!ht || !key || !value)
 		return;
-	}
 
 	int hash_index = ht->hash_function(key) % ht->hmax;
 
 	if (ht_has_key(ht, key) == 1) {
 		ll_node_t *node = ht->buckets[hash_index]->head;
-		while (node != NULL) {
+		while (node) {
 			info *data_info = node->data;
 
 			if (!ht->compare_function(data_info->key, key)) {
@@ -156,7 +145,7 @@ void ht_put(hashtable_t *ht, void *key, unsigned int key_size, void *value,
 	memcpy(data_info->key, key, key_size);
 	memcpy(data_info->value, value, value_size);
 
-	// adaug fiecare nod nou pe prima pozitie a listei
+	// i put a new node at the top of the list
 	ll_add_nth_node(ht->buckets[hash_index], 0, data_info);
 	ht->size++;
 
@@ -165,28 +154,27 @@ void ht_put(hashtable_t *ht, void *key, unsigned int key_size, void *value,
 
 void ht_remove_entry(hashtable_t *ht, void *key)
 {
-	if (!ht || !key || ht_has_key(ht, key) != 1) {
+	if (!ht || !key || ht_has_key(ht, key) != 1)
 		return;
-	}
 
 	int index = ht->hash_function(key) % ht->hmax;
 	ll_node_t *node = ht->buckets[index]->head;
 
 	unsigned int node_nr = 0;
 
-	while (node != NULL) {
+	while (node) {
 		info *data_info = (info *)node->data;
 
 		if (!ht->compare_function(data_info->key, key)) {
 			ht->key_val_free_function(data_info);
 
-			/*eliberez memoria la care pointeaza
-			data din nod */
+			/* free the memory where data from nod
+			points to */
 			free(data_info);
 
 			ll_node_t *elim = ll_remove_nth_node(ht->buckets[index], node_nr);
-			/* eliberez memoria la care pointeaza
-			nodul ce a fost exclus din lista*/
+			/* free the memory where the node excluded
+			from the list points to*/
 			free(elim);
 			elim = NULL;
 			ht->size--;
@@ -200,36 +188,33 @@ void ht_remove_entry(hashtable_t *ht, void *key)
 
 void ht_free(hashtable_t *ht)
 {
-	if (!ht) {
+	if (!ht)
 		return;
-	}
 
 	for (unsigned int i = 0; i < ht->hmax; ++i) {
 		ll_node_t *node = ht->buckets[i]->head;
 
-		while (node != NULL) {
+		while (node) {
 			if (node->data)
 				ht->key_val_free_function(node->data);
 			node = node->next;
 		}
 
-		/* eliberez memoria la care pointeaza
-		lista impreuna cu memoria la
-		care pointeaza nodurile */
+		/* free the memory that the list points to
+		along with the memory that the nodes point to */
 		ll_free(&ht->buckets[i]);
 	}
-	/* eliberez memoria la care pointeaza dublul pointer
-	buckets, deci avem 0 liste in array */
+	/* free the memory that the double pointer buckets points
+	to, so now we have zero active buckets */
 	free(ht->buckets);
 
-	/* eliberez memoria la care pointeaza ht,
-	deci stergem hashtable-ul */
+	/* free the memory allocated for the hashmap */
 	free(ht);
 }
 
 unsigned int ht_get_size(hashtable_t *ht)
 {
-	if (ht == NULL)
+	if (!ht)
 		return 0;
 
 	return ht->size;
@@ -237,7 +222,7 @@ unsigned int ht_get_size(hashtable_t *ht)
 
 unsigned int ht_get_hmax(hashtable_t *ht)
 {
-	if (ht == NULL)
+	if (!ht)
 		return 0;
 
 	return ht->hmax;

@@ -9,7 +9,7 @@
 
 typedef struct queue_t queue_t;
 typedef struct queue_t {
-    linked_list_t *list;
+	linked_list_t *list;
 } queue_t;
 
 queue_t *init_queue(unsigned int data_size);
